@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- HIDE SCROLLBAR BUT ALLOW SCROLLING --- */
+@layer utilities {
+  .custom-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
+/* --- OPTIONAL: TEXT SELECTION COLOR --- */
+::selection {
+  background-color: #06b6d4; /* Cyan-500 */
+  color: black;
+}
