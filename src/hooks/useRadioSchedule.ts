@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { ScheduleItem } from '../types.ts';
+import type { ScheduleItem, FillerItem } from '../types';
 
 interface RadioState {
   currentTrack: ScheduleItem | null;
@@ -10,11 +10,11 @@ interface RadioState {
   nextShow: ScheduleItem | null;
   visibleSchedule: ScheduleItem[];
 }
-// ------------------------
 
 export const useRadioSchedule = () => {
-  // Store the raw full schedule from DB
   const [rawSchedule, setRawSchedule] = useState<ScheduleItem[]>([]);
+  // NEW: Store the filler playlist
+  const [fillerPlaylist, setFillerPlaylist] = useState<FillerItem[]>([]);
 
   const [radioState, setRadioState] = useState<RadioState>({
     currentTrack: null,
@@ -34,7 +34,17 @@ export const useRadioSchedule = () => {
     return () => unsubscribe();
   }, []);
 
-  // 2. The "Tick" Logic
+  // 2. NEW: Fetch Filler Playlist Real-time
+  useEffect(() => {
+    const q = collection(db, "filler");
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FillerItem));
+      setFillerPlaylist(items);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 3. The "Tick" Logic
   useEffect(() => {
     const checkSchedule = () => {
       const now = new Date();
@@ -77,8 +87,10 @@ export const useRadioSchedule = () => {
     return () => clearInterval(timer);
   }, [rawSchedule]);
 
+  // Return everything including the new playlist
   return {
     ...radioState,
-    schedule: radioState.visibleSchedule
+    schedule: radioState.visibleSchedule,
+    fillerPlaylist // <--- Expose this
   };
 };

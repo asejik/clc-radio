@@ -8,3 +8,10 @@ export interface ScheduleItem {
   startTime: Timestamp;
   durationSeconds: number;
 }
+
+export interface FillerItem {
+  id: string;
+  title: string;
+  artist: string;
+  audioUrl: string;
+}

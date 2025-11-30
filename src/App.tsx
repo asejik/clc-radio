@@ -8,10 +8,10 @@ import { Lock } from 'lucide-react';
 const FILLER_URL = "https://archive.org/download/mythium/JLS_ATI.mp3";
 
 function App() {
-  const { currentTrack, offset, isLive, schedule } = useRadioSchedule();
+  const { currentTrack, offset, isLive, schedule, fillerPlaylist } = useRadioSchedule();
   const [showAdmin, setShowAdmin] = useState(false); // Toggle state
 
-  const activeSrc = currentTrack ? currentTrack.audioUrl : FILLER_URL;
+  const activeSrc = currentTrack ? currentTrack.audioUrl : "";
   const activeOffset = currentTrack ? offset : 0;
 
 // Simple security check
@@ -55,11 +55,12 @@ function App() {
 
           <AudioPlayer
             src={activeSrc}
-            startTimeOffset={activeOffset}
+            startTimeOffset={currentTrack ? offset : 0}
             isFiller={!isLive}
             title={currentTrack?.title}
             artist={currentTrack?.artist}
             coverImage="/cover.jpg"
+            fillerPlaylist={fillerPlaylist} // <--- Pass the list here
           />
 
           <ScheduleList
