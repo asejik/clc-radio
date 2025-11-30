@@ -3,26 +3,35 @@ import { AudioPlayer } from './components/AudioPlayer';
 import { ScheduleList } from './components/ScheduleList';
 import { AdminPanel } from './components/AdminPanel';
 import { useRadioSchedule } from './hooks/useRadioSchedule';
-import { Lock } from 'lucide-react';
+import { Lock, X, ChevronRight } from 'lucide-react';
 
 function App() {
   const { currentTrack, offset, isLive, schedule, fillerPlaylist } = useRadioSchedule();
+
+  // State for Views
   const [showAdmin, setShowAdmin] = useState(false);
+
+  // State for Custom Password Modal
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState(false);
 
   // Logic: If live, use track URL. If filler, AudioPlayer handles the random URL.
   const activeSrc = currentTrack ? currentTrack.audioUrl : "";
 
-  // Simple security check
-  const handleAdminClick = () => {
-    const password = prompt("Enter Admin Password:");
-
-    // Read from the secure .env file
+  // Handle Password Submission
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     const correctPassword = import.meta.env.VITE_ADMIN_PASSWORD;
 
-    if (password === correctPassword) {
+    if (passwordInput === correctPassword) {
       setShowAdmin(true);
-    } else if (password) {
-      alert("Wrong Password");
+      setShowAuthModal(false); // Close modal
+      setPasswordInput('');    // Clear input
+      setAuthError(false);
+    } else {
+      setAuthError(true);
+      // Shake effect logic could go here
     }
   };
 
@@ -37,11 +46,49 @@ function App() {
 
       {/* --- CONTENT LAYER --- */}
 
+      {/* 1. PASSWORD MODAL OVERLAY */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-zinc-900/90 border border-white/10 p-6 rounded-2xl w-full max-w-xs shadow-2xl transform transition-all scale-100 relative">
+
+            <button
+              onClick={() => { setShowAuthModal(false); setAuthError(false); setPasswordInput(''); }}
+              className="absolute top-3 right-3 text-zinc-500 hover:text-white"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3 text-cyan-400">
+                <Lock size={20} />
+              </div>
+              <h3 className="text-lg font-bold text-white">Admin Access</h3>
+              <p className="text-xs text-zinc-400">Enter secure PIN to continue</p>
+            </div>
+
+            <form onSubmit={handleAuthSubmit} className="space-y-3">
+              <input
+                autoFocus
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="PIN Code"
+                className={`w-full bg-black/50 border ${authError ? 'border-red-500' : 'border-white/10'} rounded-xl p-3 text-center text-white text-lg tracking-widest focus:outline-none focus:border-cyan-500 transition`}
+              />
+              {authError && <p className="text-xs text-red-400 text-center font-bold">Incorrect Password</p>}
+
+              <button type="submit" className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-cyan-400 transition flex items-center justify-center gap-2">
+                Unlock <ChevronRight size={16} />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MAIN APP VIEWS */}
       {showAdmin ? (
-        // 1. ADMIN VIEW
         <AdminPanel onBack={() => setShowAdmin(false)} />
       ) : (
-        // 2. RADIO VIEW
         <div className="relative z-10 flex flex-col items-center w-full max-w-md">
 
           <div className="mb-8 flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-sm shadow-lg">
@@ -69,8 +116,11 @@ function App() {
 
           <div className="mt-12 text-center opacity-40 hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
             <p className="text-[10px] uppercase tracking-widest font-medium">CLC Radio App</p>
-            {/* The "Secret" Lock Button */}
-            <button onClick={handleAdminClick} className="p-1 hover:bg-white/10 rounded transition">
+            {/* The "Secret" Lock Button - NOW OPENS MODAL */}
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="p-1 hover:bg-white/10 rounded transition"
+            >
               <Lock size={12} className="text-zinc-600" />
             </button>
           </div>

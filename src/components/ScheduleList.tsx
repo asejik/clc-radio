@@ -45,7 +45,7 @@ export const ScheduleList = ({ schedule, currentTrackId }: ScheduleListProps) =>
                 <div className="flex justify-between items-start gap-4">
                   {/* Text Info */}
                   <div className="flex-1 min-w-0">
-                    <div className={`font-bold text-sm truncate ${isActive ? 'text-cyan-400' : 'text-zinc-200'}`}>
+                    <div className={`font-bold text-sm line-clamp-2 leading-tight ${isActive ? 'text-cyan-400' : 'text-zinc-200'}`}>
                       {item.title}
                     </div>
                     <div className="text-xs text-zinc-500 mt-1 truncate group-hover:text-zinc-400 transition-colors">

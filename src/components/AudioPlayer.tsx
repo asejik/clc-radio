@@ -1,15 +1,15 @@
 import { useRef, useEffect, useState } from 'react';
 import { Play, Pause, Volume2, VolumeX, Loader2, Share2, Check } from 'lucide-react';
-import type { FillerItem } from '../types'; // Import type
+import type { FillerItem } from '../types';
 
 interface AudioPlayerProps {
-  src: string; // This is the Sermon URL
+  src: string;
   startTimeOffset: number;
   isFiller: boolean;
   title?: string;
   artist?: string;
   coverImage?: string;
-  fillerPlaylist?: FillerItem[]; // NEW: Accept the playlist
+  fillerPlaylist?: FillerItem[];
 }
 
 export const AudioPlayer = ({
@@ -28,26 +28,25 @@ export const AudioPlayer = ({
   const [volume, setVolume] = useState(1);
   const [copied, setCopied] = useState(false);
 
-  // NEW: State for the current random filler song
+  // State for the current random filler song
   const [currentFiller, setCurrentFiller] = useState<FillerItem | null>(null);
 
-  // Helper: Pick a random song that isn't the current one
+  // Helper: Pick a random song
   const pickRandomFiller = () => {
     if (fillerPlaylist.length === 0) return;
     const randomIndex = Math.floor(Math.random() * fillerPlaylist.length);
     setCurrentFiller(fillerPlaylist[randomIndex]);
   };
 
-  // Effect: Handle switching between Modes (Live vs Filler)
+  // Effect: Handle switching between Modes
   useEffect(() => {
     if (!audioRef.current) return;
 
     if (isFiller) {
       // WORSHIP MODE
       if (fillerPlaylist.length > 0 && !currentFiller) {
-        pickRandomFiller(); // Init first song
+        pickRandomFiller();
       } else if (currentFiller) {
-        // Play the chosen filler song
         if (audioRef.current.src !== currentFiller.audioUrl) {
            audioRef.current.src = currentFiller.audioUrl;
            audioRef.current.currentTime = 0;
@@ -56,16 +55,14 @@ export const AudioPlayer = ({
         }
       }
     } else {
-      // LIVE MODE (Prioritize this)
+      // LIVE MODE
       if (src && audioRef.current.src !== src) {
         audioRef.current.src = src;
-        // Important: Wait for metadata before jumping
         const jumpToLive = () => {
            if(audioRef.current) {
              audioRef.current.currentTime = startTimeOffset;
              audioRef.current.play().catch(() => setIsPlaying(false));
              setIsPlaying(true);
-             // Remove listener to prevent re-jumping
              audioRef.current.removeEventListener('loadedmetadata', jumpToLive);
            }
         };
@@ -73,7 +70,6 @@ export const AudioPlayer = ({
       }
     }
   }, [isFiller, src, fillerPlaylist, currentFiller, startTimeOffset]);
-
 
   // Effect: Listeners
   useEffect(() => {
@@ -84,13 +80,10 @@ export const AudioPlayer = ({
     const onPlaying = () => { setIsBuffering(false); setIsPlaying(true); };
     const onPause = () => setIsPlaying(false);
 
-    // THE MAGIC: When a song ends...
     const onEnded = () => {
       if (isFiller) {
-        // If worship mode, pick next random song
         pickRandomFiller();
       } else {
-        // If sermon ends, stop (or let the hook switch to filler)
         setIsPlaying(false);
       }
     };
@@ -106,8 +99,7 @@ export const AudioPlayer = ({
       ref.removeEventListener('pause', onPause);
       ref.removeEventListener('ended', onEnded);
     };
-  }, [isFiller, fillerPlaylist]); // Re-bind if playlist changes
-
+  }, [isFiller, fillerPlaylist]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -132,7 +124,6 @@ export const AudioPlayer = ({
     }
   };
 
-  // Determine what Text to show
   const displayTitle = isFiller ? (currentFiller?.title || "Loading Worship...") : title;
   const displayArtist = isFiller ? (currentFiller?.artist || "CLC Radio") : artist;
 
@@ -142,7 +133,6 @@ export const AudioPlayer = ({
 
       <div className="relative bg-black/60 backdrop-blur-xl border border-white/10 p-6 rounded-[1.75rem] flex flex-col items-center overflow-hidden">
 
-        {/* The Audio Element */}
         <audio ref={audioRef} />
 
         <button onClick={handleShare} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors" title="Share Station">
@@ -171,6 +161,8 @@ export const AudioPlayer = ({
         </div>
 
         <div className="flex items-center justify-between w-full px-2">
+
+          {/* Visualizer */}
           <div className="w-12 h-8 flex items-end gap-1">
             {isPlaying && !isBuffering && (
               <>
@@ -182,18 +174,43 @@ export const AudioPlayer = ({
             )}
           </div>
 
+          {/* Play Button */}
           <button onClick={togglePlay} className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition-all active:scale-95 z-10 relative">
             {isBuffering ? <Loader2 className="animate-spin text-zinc-400" size={24} /> : isPlaying ? <Pause fill="black" size={24} /> : <Play fill="black" className="ml-1" size={24} />}
           </button>
 
+          {/* Volume Control - FIXED UI */}
           <div className="group/vol relative flex items-center w-12 justify-end">
-            <button onClick={toggleMute} className="text-zinc-400 hover:text-white transition">
+            <button onClick={toggleMute} className="text-zinc-400 hover:text-white transition z-20 relative">
               {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-8 h-24 bg-zinc-800 rounded-full hidden group-hover/vol:flex flex-col justify-end items-center py-3 border border-zinc-700 shadow-xl z-20">
-               <input type="range" min="0" max="1" step="0.1" value={isMuted ? 0 : volume} onChange={(e) => { const vol = parseFloat(e.target.value); setVolume(vol); if(audioRef.current) { audioRef.current.volume = vol; audioRef.current.muted = false; setIsMuted(false); } }} className="h-16 w-1 bg-zinc-600 rounded-lg appearance-none cursor-pointer outline-none" style={{ writingMode: 'vertical-lr', direction: 'rtl' }} />
+
+            {/* FIX DETAILS:
+               1. absolute bottom-[90%] -> pushes it up above the icon
+               2. pb-4 -> adds invisible padding at the bottom so mouse doesn't "fall" into the gap
+            */}
+            <div className="absolute bottom-[90%] left-1/2 -translate-x-1/2 w-10 h-32 hidden group-hover/vol:flex flex-col justify-end items-center pb-4 z-10">
+               <div className="w-8 h-24 bg-zinc-800 rounded-full flex items-center justify-center border border-zinc-700 shadow-xl py-3">
+                 <input
+                  type="range"
+                  min="0" max="1" step="0.1"
+                  value={isMuted ? 0 : volume}
+                  onChange={(e) => {
+                    const vol = parseFloat(e.target.value);
+                    setVolume(vol);
+                    if(audioRef.current) {
+                      audioRef.current.volume = vol;
+                      audioRef.current.muted = false;
+                      setIsMuted(false);
+                    }
+                  }}
+                  className="h-16 w-1 bg-zinc-600 rounded-lg appearance-none cursor-pointer outline-none"
+                  style={{ writingMode: 'vertical-lr', direction: 'rtl' }}
+                />
+               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
