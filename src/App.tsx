@@ -1,20 +1,18 @@
 import { useState } from 'react';
 import { AudioPlayer } from './components/AudioPlayer';
 import { ScheduleList } from './components/ScheduleList';
-import { AdminPanel } from './components/AdminPanel'; // New Import
+import { AdminPanel } from './components/AdminPanel';
 import { useRadioSchedule } from './hooks/useRadioSchedule';
 import { Lock } from 'lucide-react';
 
-const FILLER_URL = "https://archive.org/download/mythium/JLS_ATI.mp3";
-
 function App() {
   const { currentTrack, offset, isLive, schedule, fillerPlaylist } = useRadioSchedule();
-  const [showAdmin, setShowAdmin] = useState(false); // Toggle state
+  const [showAdmin, setShowAdmin] = useState(false);
 
+  // Logic: If live, use track URL. If filler, AudioPlayer handles the random URL.
   const activeSrc = currentTrack ? currentTrack.audioUrl : "";
-  const activeOffset = currentTrack ? offset : 0;
 
-// Simple security check
+  // Simple security check
   const handleAdminClick = () => {
     const password = prompt("Enter Admin Password:");
 
@@ -55,12 +53,13 @@ function App() {
 
           <AudioPlayer
             src={activeSrc}
+            // Logic moved inline here to avoid unused variable error
             startTimeOffset={currentTrack ? offset : 0}
             isFiller={!isLive}
             title={currentTrack?.title}
             artist={currentTrack?.artist}
             coverImage="/cover.jpg"
-            fillerPlaylist={fillerPlaylist} // <--- Pass the list here
+            fillerPlaylist={fillerPlaylist}
           />
 
           <ScheduleList

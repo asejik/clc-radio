@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { collection, writeBatch, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { ArrowLeft, Loader2, Upload, FileText, Plus, Music } from 'lucide-react';
+// REMOVED 'Music' from this import list
+import { ArrowLeft, Loader2, Upload, FileText, Plus } from 'lucide-react';
 
 interface AdminPanelProps {
   onBack: () => void;
@@ -9,7 +10,6 @@ interface AdminPanelProps {
 
 export const AdminPanel = ({ onBack }: AdminPanelProps) => {
   const [mode, setMode] = useState<'single' | 'bulk'>('bulk');
-  // NEW: Target Collection State
   const [targetCollection, setTargetCollection] = useState<'schedule' | 'filler'>('schedule');
 
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,6 @@ export const AdminPanel = ({ onBack }: AdminPanelProps) => {
 
           if (cleanKey === 'title') data.title = value;
           if (cleanKey === 'artist') data.artist = value;
-          // Handle 'Url' OR 'audioUrl'
           if (cleanKey === 'audiourl' || cleanKey === 'url') data.audioUrl = value;
 
           if (targetCollection === 'schedule') {
@@ -103,7 +102,6 @@ export const AdminPanel = ({ onBack }: AdminPanelProps) => {
           }
         });
 
-        // Validation
         const isValid = data.title && data.audioUrl && (targetCollection === 'filler' || (data.startTime && data.durationSeconds));
 
         if (isValid) {
@@ -134,7 +132,6 @@ export const AdminPanel = ({ onBack }: AdminPanelProps) => {
         <h2 className="text-xl font-bold text-white">Admin Dashboard</h2>
       </div>
 
-      {/* Target Toggle */}
       <div className="flex items-center gap-2 mb-4 bg-white/5 p-2 rounded-xl border border-white/10">
         <button
           onClick={() => setTargetCollection('schedule')}
@@ -186,7 +183,7 @@ export const AdminPanel = ({ onBack }: AdminPanelProps) => {
             placeholder={targetCollection === 'schedule' ? "title: ...\nstartTime: ...\n..." : "Title: Oceans\nArtist: Hillsong\nUrl: https://..."}
             className="w-full h-64 bg-white/5 border border-white/10 rounded-lg p-4 text-xs font-mono text-white custom-scrollbar"
           />
-          <button disabled={loading || !bulkText} onClick={handleBulkSubmit} className="w-full py-4 bg-purple-500 rounded-xl font-bold text-white mt-4">{loading ? <Loader2 className="animate-spin" /> : "Upload Batch"}</button>
+          <button disabled={loading || !bulkText} onClick={handleBulkSubmit} className="w-full py-4 bg-purple-500 rounded-xl font-bold text-white mt-4">{loading ? <Loader2 className="animate-spin" /> : <><Upload size={18} /> Upload Batch</>}</button>
         </div>
       )}
     </div>
