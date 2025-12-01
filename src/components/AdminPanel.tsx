@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { collection, writeBatch, doc, Timestamp, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { ArrowLeft, Loader2, Upload, FileText, Plus, Trash2, AlertTriangle, Calendar } from 'lucide-react';
-import type { ScheduleItem } from '../types'; // Ensure you have this type imported
+// REMOVED 'Upload' from imports
+import { ArrowLeft, Loader2, FileText, Plus, Trash2, AlertTriangle, Calendar } from 'lucide-react';
+import type { ScheduleItem } from '../types';
 
 interface AdminPanelProps {
   onBack: () => void;
-  schedule: ScheduleItem[]; // Receive the list
+  schedule: ScheduleItem[];
 }
 
 export const AdminPanel = ({ onBack, schedule }: AdminPanelProps) => {
@@ -67,7 +68,6 @@ export const AdminPanel = ({ onBack, schedule }: AdminPanelProps) => {
     setLoading(true);
     try {
       const now = new Date();
-      // Query items starting in the future
       const q = query(collection(db, "schedule"), where("startTime", ">", Timestamp.fromDate(now)));
       const snapshot = await getDocs(q);
 
@@ -145,14 +145,12 @@ export const AdminPanel = ({ onBack, schedule }: AdminPanelProps) => {
           }
         });
 
-        // Basic Validation
         const isValid = data.title && data.audioUrl && (targetCollection === 'filler' || (data.startTime && data.durationSeconds));
         if (isValid) parsedItems.push(data);
       });
 
-      // 2. Conflict Check Phase (Only for Schedule)
+      // 2. Conflict Check Phase
       if (targetCollection === 'schedule') {
-        // Sort by time to check overlaps
         parsedItems.sort((a, b) => a.startTime.seconds - b.startTime.seconds);
 
         for (let i = 0; i < parsedItems.length - 1; i++) {
@@ -164,7 +162,7 @@ export const AdminPanel = ({ onBack, schedule }: AdminPanelProps) => {
             setLoading(false);
             const conflictMsg = `CONFLICT DETECTED!\n\n"${current.title}" ends at ${formatTime(currentEnd)}\nBUT\n"${next.title}" starts at ${formatTime(next.startTime.seconds)}`;
             alert(conflictMsg);
-            return; // STOP UPLOAD
+            return;
           }
         }
       }
