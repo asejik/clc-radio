@@ -87,7 +87,8 @@ function App() {
 
       {/* 2. MAIN APP VIEWS */}
       {showAdmin ? (
-        <AdminPanel onBack={() => setShowAdmin(false)} />
+        <AdminPanel onBack={() => setShowAdmin(false)}
+        schedule={schedule} />
       ) : (
         <div className="relative z-10 flex flex-col items-center w-full max-w-md">
 
