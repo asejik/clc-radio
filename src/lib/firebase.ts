@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getAuth } from "firebase/auth"; // <--- NEW
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -9,10 +10,10 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_APP_ID,
-  // NEW: Explicitly tell Firebase where your European database lives
   databaseURL: import.meta.env.VITE_DATABASE_URL
 };
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
+export const auth = getAuth(app); // <--- EXPORT THIS
